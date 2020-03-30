@@ -63,13 +63,14 @@ window.addEventListener('DOMContentLoaded', function () {
             hours.textContent = t.hours;
             minutes.textContent = t.minutes;
             seconds.textContent = t.seconds;
-            // Если таймер дойдет до 0 то остановиться по этому условию
+            // Если таймер дойдет до - значения  то остановиться по этому условию
             if (t.total <= -1) {
                 clearInterval(timeInterval);
                 hours.textContent = '00';
                 minutes.textContent = '00';
                 seconds.textContent = '00';
             }
+            // Если таймер дойдет до 0 то остановиться по этому условию
             else if (t.total <= 0) {
                 clearInterval(timeInterval);
             }
