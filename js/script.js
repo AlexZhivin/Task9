@@ -98,53 +98,69 @@ window.addEventListener('DOMContentLoaded', function () { // Используе�
         overlay.style.display = 'none';
         more.classList.remove('more-splash');
         document.body.style.overflow = '';  // отменить запрет прокрутки
-    })
+    });
 
     /* Конец modal */
 
 
-    /*   Form  начало */
+    /* Начало form с promise */
     let message = {
         loading: 'Загрузка...',
         success: 'Спасибо, скоро мы с вами свяжемся!',
         filure: 'Что-то пошло не так...'
     }
-
     let form = document.querySelector('.main-form'),
         input = document.getElementsByTagName('input'),
         statusMesage = document.createElement('div');
-    statusMesage.classList.add('status');
+        statusMesage.classList.add('status');
+
+
     form.addEventListener('submit', function (event) { // событие submit происходит тогда когда форма отправляется 
         event.preventDefault(); //отключаем отправку формы стандартными методами
-        form.appendChild(statusMesage);
+        form.appendChild(statusMesage); // Добавляемый созданный div вконец блока формы
 
-        let request = new XMLHttpRequest();// Это главный объект для работы с AJAX запросами. Далее используем его методы
-        request.open('POST', 'server.php');  // отправляем на файл сервера
-        //ниже отправка формы в простом формате
-        //request.setRequestHeader('Content-Type', 'aplication/x-www-form-urlencoded'); // aplication/x-www-form-urlencoded  - тип передачи формы - отправляет только переменные. Альтернатива  multipart/form-data - можно отправлять и значения переменных и файлы
-        // ниже отправка формы в JSON формате
-        request.setRequestHeader('Content-type', 'aplication/json; charset=utf-8')
-        let formData = new FormData(form);// это объект, представляющий данные HTML формы, он имеет свои методы https://learn.javascript.ru/formdata
-        // превращаем наш объект форм дата в обычный объект
-        let obj = {};
-        formData.forEach(function (value, key) {
-            obj[key] = value;
-        });
-        let json = JSON.stringify(obj);  // переводим объект в формат JSON
-        //request.send(formData);
-        request.send(json);
-        request.addEventListener('readystatechange', function () {
-            if (request.readyState < 4) {
-                statusMesage.innerHTML = message.loading;
+        function clearInput() {
+            for (let i = 0; i < input.length; i++) {   // очистка формы
+                input[i].value = '';                // берем каждый инпут и очищаем после отправки формы
             }
-            else if (request.readyState === 4 && request.status == 200) {
-                statusMesage.innerHTML = message.success;                    // сюда можно включить прогрессбар с анимацией или красивую картинку 
-            }
-            else { statusMesage.innerHTML = message.failure; }
-        });
-        for (let i = 0; i < input.length; i++) {   // очистка формы
-            input[i].value = '';                // берем каждый инпут и очищаем после отправки формы
         }
+
+        function reqResponse() {
+            let request = new XMLHttpRequest();
+            request.open('POST', 'server.php');
+            request.setRequestHeader('Content-type', 'aplication/json; charset=utf-8');
+            let formData = new FormData(form); // формируем объект формы из html - встроенная функции js  -способ собрать данные с формы. Также можно использовать без формы из html и добавлять свои данные https://learn.javascript.ru/xmlhttprequest
+            let obj = {};
+            formData.forEach(function (value, key) {    // запомнить этот способ, он используется много где
+                obj[key] = value;
+            });
+            let json = JSON.stringify(obj);
+            request.send(json);
+            return new Promise(function (resolve, reject) {
+                request.onreadystatechange = () => {
+                    if (request.readyState < 4) {
+                        resolve();
+                    }
+                    else if (request.readyState === 4 && request.status == 200) {
+                        resolve();                    // сюда можно включить прогрессбар с анимацией или красивую картинку 
+                    }
+                    else {
+                        reject();
+                    }
+                };
+            })
+
+        };
+
+        reqResponse()
+            .then(() => { statusMesage.innerHTML = message.loading; })
+            .then(() => { statusMesage.innerHTML = message.success })
+            .catch(() => { statusMesage.innerHTML = message.failure })
+            .then(clearInput);
     });
-    /*   Form  конец */
+
+
+    /* Конец form с  promise */
+
+
 });
